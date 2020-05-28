@@ -5,6 +5,8 @@ import os
 import random
 
 from bird import Bird
+from pipe import Pipe
+from base import Base
 
 pygame.font.init()
 
