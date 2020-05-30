@@ -1,7 +1,7 @@
 [NEAT]
-fitness_criterion     = max             # criterion for the fitness function
-fitness_threshold     = 100             # when fitness function should stop
-pop_size              = 100             # birds population size
+fitness_criterion     = max
+fitness_threshold     = 100
+pop_size              = 20
 reset_on_extinction   = False
 
 [DefaultGenome]
