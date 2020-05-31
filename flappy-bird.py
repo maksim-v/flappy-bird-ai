@@ -1,8 +1,13 @@
+import os
+os.environ["PATH"] += os.pathsep + 'C:/Program Files (x86)/Graphviz2.38/bin/'
+
 import pygame
 import neat
 import time
 import os
 import random
+import pickle
+import visualize
 
 from bird import Bird
 from pipe import Pipe
@@ -12,6 +17,8 @@ pygame.font.init()
 
 WIN_WIDTH = 500
 WIN_HEIGHT = 800
+
+FLOOR = 730
 
 GEN = 0
 
@@ -33,6 +40,9 @@ def draw_window(win, birds, pipes, base, score, gen):
     text = STAT_FONT.render("Gen: " + str(gen), 1, (255, 255, 255))
     win.blit(text, (10, 10))
 
+    text = STAT_FONT.render("Alive: " + str(len(birds)),1,(255,255,255))
+    win.blit(text, (10, 50))
+
     base.draw(win)    
     for bird in birds:
         bird.draw(win)
@@ -53,7 +63,7 @@ def fitness(genomes, config):
         g.fitness = 0
         ge.append(g)
 
-    base = Base(730)
+    base = Base(FLOOR)
     pipes = [Pipe(600)]
 
     win = pygame.display.set_mode((WIN_WIDTH, WIN_HEIGHT))
@@ -119,13 +129,17 @@ def fitness(genomes, config):
             pipes.remove(r)
 
         for x, bird in enumerate(birds):    
-            if bird.y + bird.img.get_height() >= 730:
+            if bird.y + bird.img.get_height() -10 >= FLOOR or bird.y < -50:
                 birds.pop(x)
                 nets.pop(x)
                 ge.pop(x)
 
         base.move()
-        draw_window(win, birds, pipes, base, score, GEN)                 
+        draw_window(win, birds, pipes, base, score, GEN)
+
+        if score > 20:
+            pickle.dump(nets[0],open("best_bird.pickle", "wb"))
+            break      
 
 def run(config_path):
     config = neat.config.Config(
@@ -143,6 +157,12 @@ def run(config_path):
     p.add_reporter(stats)
 
     winner = p.run(fitness ,50)
+
+    print('\nBest genome:\n{!s}'.format(winner))
+    node_names = {-1:'Bird Y', -2: 'Top Pipe Y', -3:"Bottom Pipe Y", 0:'Jump'}
+    visualize.draw_net(config, winner, True, node_names=node_names) 
+    visualize.plot_stats(stats, ylog=False, view=True)
+    visualize.plot_species(stats, view=True)
 
 if __name__ == "__main__":
     local_dir = os.path.dirname(__file__)
